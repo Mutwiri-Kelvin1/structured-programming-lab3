@@ -33,7 +33,6 @@ jobs:
               MISSING+=("$f")
             fi
           done
-
           if [ ${#MISSING[@]} -gt 0 ]; then
             echo "status=fail" >> $GITHUB_OUTPUT
             echo "::error::Missing required files: ${MISSING[*]}"
@@ -41,7 +40,7 @@ jobs:
             echo "status=pass" >> $GITHUB_OUTPUT
           fi
 
-      - name: PHP syntax check (php -l)
+      - name: PHP syntax check
         id: syntax
         run: |
           ERRORS=()
@@ -56,7 +55,6 @@ jobs:
               fi
             fi
           done
-
           if [ ${#ERRORS[@]} -gt 0 ]; then
             echo "status=fail" >> $GITHUB_OUTPUT
             echo "::error::PHP syntax errors in: ${ERRORS[*]}"
@@ -81,7 +79,6 @@ jobs:
               fi
             fi
           done
-
           if [ ${#MISSING_HEADERS[@]} -gt 0 ]; then
             echo "status=warn" >> $GITHUB_OUTPUT
             echo "::warning::Headers missing or incomplete in: ${MISSING_HEADERS[*]}"
@@ -98,10 +95,10 @@ jobs:
             echo "status=pass" >> $GITHUB_OUTPUT
           else
             echo "status=warn" >> $GITHUB_OUTPUT
-            echo "::warning::Commit message should follow: 'feat: lab3 complete - REGNO/YEAR'"
+            echo "::warning::Commit message should follow: feat: lab3 complete - REGNO/YEAR"
           fi
 
-      - name: Check that TODO stubs have been worked on
+      - name: Check TODO stubs have been worked on
         id: stubs
         run: |
           UNTOUCHED=0
@@ -117,48 +114,57 @@ jobs:
               fi
             fi
           done
-
           if [ "$UNTOUCHED" -gt 0 ]; then
             echo "status=warn" >> $GITHUB_OUTPUT
           else
             echo "status=pass" >> $GITHUB_OUTPUT
           fi
 
-      - name: Post results summary as PR comment
+      - name: Post results as PR comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const files   = '${{ steps.files.outputs.status }}'   !== 'fail' ? '✅' : '❌';
-            const syntax  = '${{ steps.syntax.outputs.status }}'  !== 'fail' ? '✅' : '❌';
-            const headers = '${{ steps.headers.outputs.status }}' === 'pass' ? '✅' : '⚠️';
-            const commits = '${{ steps.commits.outputs.status }}' === 'pass' ? '✅' : '⚠️';
-            const stubs   = '${{ steps.stubs.outputs.status }}'   === 'pass' ? '✅' : '⚠️';
+            const f = '${{ steps.files.outputs.status }}';
+            const s = '${{ steps.syntax.outputs.status }}';
+            const h = '${{ steps.headers.outputs.status }}';
+            const c = '${{ steps.commits.outputs.status }}';
+            const t = '${{ steps.stubs.outputs.status }}';
 
-            const allPass = syntax !== '❌' && files !== '❌';
-            const badge   = allPass ? '🟢 Ready for review' : '🔴 Issues found — please fix before deadline';
+            const files   = f !== 'fail' ? ':white_check_mark:' : ':x:';
+            const syntax  = s !== 'fail' ? ':white_check_mark:' : ':x:';
+            const headers = h === 'pass' ? ':white_check_mark:' : ':warning:';
+            const commits = c === 'pass' ? ':white_check_mark:' : ':warning:';
+            const stubs   = t === 'pass' ? ':white_check_mark:' : ':warning:';
 
-            const body = `## ICS 2371 Lab 3 — Automated Check Results
+            const allPass = s !== 'fail' && f !== 'fail';
+            const badge = allPass
+              ? ':green_circle: Ready for review'
+              : ':red_circle: Issues found - please fix before deadline';
 
-${badge}
-
-| Check | Result | Marks at stake |
-|---|---|---|
-| Required files present | ${files} | 2 |
-| PHP syntax valid | ${syntax} | 3 |
-| File headers with reg number | ${headers} | 1 |
-| Commit message format | ${commits} | 1 |
-| TODO stubs worked on | ${stubs} | 2 |
-| PR template filled | _(checked by lecturer)_ | 1 |
-
-> ✅ pass · ⚠️ warning (marks may be deducted) · ❌ fail
-> Lecturer will review and confirm final marks after the deadline.
-
-_Automated check. Raise a GitHub Issue if you believe a result is incorrect._`;
+            const lines = [
+              '## ICS 2371 Lab 3 - Automated Check Results',
+              '',
+              badge,
+              '',
+              '| Check | Result | Marks at stake |',
+              '|---|---|---|',
+              '| Required files present | ' + files + ' | 2 |',
+              '| PHP syntax valid | ' + syntax + ' | 3 |',
+              '| File headers with reg number | ' + headers + ' | 1 |',
+              '| Commit message format | ' + commits + ' | 1 |',
+              '| TODO stubs worked on | ' + stubs + ' | 2 |',
+              '| PR template filled | _(checked by lecturer)_ | 1 |',
+              '',
+              '> :white_check_mark: pass  :warning: warning  :x: fail',
+              '> Lecturer will review and confirm final marks after the deadline.',
+              '',
+              '_Automated check. Raise a GitHub Issue if you believe a result is incorrect._'
+            ];
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body
+              body: lines.join('\n')
             });
