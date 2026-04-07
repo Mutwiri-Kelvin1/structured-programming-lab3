@@ -3,11 +3,11 @@
  * ICS 2371 — Lab 3: Control Structures I
  * Task 1: Simple if and if-else — Warm-Up Exercises [5 marks]
  *
- * @author     [Your Full Name]
- * @student    [Your Reg Number, e.g. SCT212-XXXX/2024]
+ * @author     [MUTWIRI KELVIN MWENDA]
+ * @student    [ENE212-0067/2023]
  * @lab        Lab 3 of 14
  * @unit       ICS 2371
- * @date       [Date completed]
+ * @date       [4TH APRIL 2026]
  */
 
 // ══════════════════════════════════════════════════════════════
@@ -20,8 +20,17 @@
 //   "Hypothermia Warning" if temp < 36.1
 // Test with: 36.8, 39.2, 34.5 — screenshot each
 
-// TODO: Exercise A — your code here
+$temperature = 39.2;
 
+if ($temperature >= 36.1 && $temperature <= 37.5) {
+    echo "Normal<br>";
+}
+if ($temperature > 37.5) {
+    echo "Fever<br>";
+}
+if ($temperature < 36.1) {
+    echo "Hypothermia Warning<br>";
+}
 
 // ══════════════════════════════════════════════════════════════
 // EXERCISE B — Even or Odd
@@ -30,7 +39,17 @@
 // Use if-else to print "$number is EVEN" or "$number is ODD"
 // Also check divisibility by 3, by 5, and by both 3 and 5 — one line each
 
-// TODO: Exercise B — your code here
+$number = 47;
+
+if ($number % 2 == 0) {
+    echo "$number is EVEN<br>";
+} else {
+    echo "$number is ODD<br>";
+}
+
+if ($number % 3 == 0) echo "$number is divisible by 3<br>";
+if ($number % 5 == 0) echo "$number is divisible by 5<br>";
+if ($number % 3 == 0 && $number % 5 == 0) echo "$number is divisible by both 3 and 5<br>";
 
 
 // ══════════════════════════════════════════════════════════════
@@ -67,4 +86,13 @@ $default    = "system_default";
 $result     = $config_val ?? $env_val ?? $default;
 echo "Config: $result<br>";
 
-// TODO: Add one more chained ?? example of your own and explain it in your report.
+// Extended chained ?? example: Cloudinary API Image Fallback
+$cloudinary_api_url = null;       // Primary source: API didn't return an image
+$local_upload_url   = null;       // Secondary source: No local file was uploaded
+$placeholder_image  = "default_avatar.jpg"; // Fallback source
+
+$final_image_to_load = $cloudinary_api_url ?? $local_upload_url ?? $placeholder_image;
+
+echo "Image source to load: $final_image_to_load<br>";
+
+?>
